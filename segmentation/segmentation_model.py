@@ -1,11 +1,15 @@
 import torch
 from torch import nn
 
+from segmentation_config import Config
+
 
 class SegmentationNet(nn.Module):
+    """Segmentation network."""
 
-    def __init__(self, C, H, W):
+    def __init__(self, config: Config):
         super().__init__()
+        H, W = config.image_size
         if H % 8 or W % 8:
             raise IOError("Wrong input size")
 
@@ -19,7 +23,7 @@ class SegmentationNet(nn.Module):
         self.relu = nn.ReLU()
 
         self.segmentation = nn.Sequential(
-            ConvLayerNormReLU((C, H, W), 32, 5, 2),
+            ConvLayerNormReLU((1, H, W), 32, 5, 2),
             nn.MaxPool2d(2),
             ConvLayerNormReLU((32, H // 2, W // 2), 64, 5, 2),
             ConvLayerNormReLU((64, H // 2, W // 2), 64, 5, 2),
@@ -65,10 +69,15 @@ class ConvLayerNormReLU(nn.Module):
 
 
 class ReduceMask(nn.Module):
+    """This serves to adjust the size of the segmentation mask
+    to the size of the SegmentationNet output.
+    """
 
     def __init__(self):
         super().__init__()
         self.pool = nn.AvgPool2d(kernel_size=8, stride=8)
 
     def forward(self, x):
+        # this further increases the number of pixels with values
+        # 0 < pixel value < 1
         return self.pool(x)
