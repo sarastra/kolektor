@@ -84,14 +84,13 @@ def compute_pos_weight(config, reduced_mask):
         # an additional prefactor is needed if we train on both positive and
         # negative samples; there are approx. 7 negative samples per every
         # positive sample
-        prefactor = 7 if config.which_samples == 'all' else 1
+        prefactor = 8 if config.which_samples == 'all' else 1
         pw = prefactor * no_defect_number / defect_number
 
     # cast to approptiate type (required by binary_cross_entropy_with_logits)
     pos_weight = torch.tensor(np.array([pw]), dtype=torch.float32)
     pos_weight = pos_weight.to(config.device)
-    # return pos_weight
-    return 8 * pos_weight
+    return pos_weight
 
 
 def check_loss(config, dataLoader, model):
